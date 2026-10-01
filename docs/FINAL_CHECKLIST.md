@@ -24,12 +24,16 @@ Emulator-tested ≠ real-project-tested.
 
 ## 3. Real Firebase project (`tech-pulse-ssec`)
 
-| Check                                                                                              | Result                                                                                                                                                                                            |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Admin credential file                                                                              | **Invalid**: `private/firebase-service-account.json` is a 183-byte Node code snippet, not a service-account JSON key. Every real-project check below is blocked until the real key is downloaded. |
-| Web configuration (public)                                                                         | Supplied by the owner; entered through `npm run setup`                                                                                                                                            |
-| Authentication/Firestore live connection, owner init, rules deployment, real attendance round trip | **Not tested**                                                                                                                                                                                    |
-| Firestore rules currently published in the real project                                            | **Not inspected / not changed** — the repo's deny-all rules are _not_ deployed                                                                                                                    |
+| Check                                                                                     | Result                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Admin credential                                                                          | **Valid** service-account JSON for `tech-pulse-ssec` (validated without printing; file mode 600)                                                                                           |
+| Configuration                                                                             | `private/runtime.json` written (public web config + key path); `npm run doctor` all OK                                                                                                     |
+| Live connection                                                                           | Auth and Firestore reachable; database was empty                                                                                                                                           |
+| Owner account                                                                             | Created in Authentication and given `dev` role in `users/{uid}`; 3 default classrooms seeded. No historical local data uploaded                                                            |
+| Connected server against the real project                                                 | Starts; Firebase sign-in → `/api/session/exchange` returned role `dev`, 8-hour session; state and logout work                                                                              |
+| Firestore rules                                                                           | **Published** (deny-all) through the Admin SDK Rules API. Verified against the live database: anonymous read, signed-in read and signed-in write from the client path all returned **403** |
+| `firebase deploy` CLI                                                                     | Not usable with the service account (403 on the service-usage API); the Rules API route above was used instead                                                                             |
+| Full attendance cycle on the real project (students, teacher review, approval, check-out) | **Not tested**                                                                                                                                                                             |
 
 ## 4. Fresh download acceptance
 
@@ -78,7 +82,7 @@ These results were obtained on an earlier build and repeated on the archive cont
 
 ## 7. Known unresolved items
 
-- Real Firebase validation and rules publication (needs the key, an owner account, and `firebase login`).
+- Full real-project attendance cycle.
 - Hardware/phone acceptance above.
 - Illustrative venue coordinates still need replacing with the real demonstration room.
 - No licence selected; nothing pushed, deployed or flashed.

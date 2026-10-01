@@ -17,12 +17,16 @@ Run `npm run demo`, read [README](../README.md). This page tells the next person
 | Launchers and tooling | `scripts/*.js`, `scripts/lib/*`                                                                                            |
 | Tests                 | `tests/*.test.js` (Node), `tests/*.spec.js` (Chrome), `tests/firebase/*` (emulators), `tests/diagnostics/*` (manual tools) |
 
-## Pending (needs people or devices)
+## Done on the real system
 
-1. Real Firebase project validation — needs a valid `private/firebase-service-account.json` (downloaded JSON key; the file currently present is a code snippet and fails validation), owner account created in Authentication, rules published (`npx firebase deploy --only firestore:rules --project tech-pulse-ssec` after `npx firebase login`).
-2. Flash the ESP32 (`npm run esp32:upload`), power-cycle test, then iPhone Safari + Android Chrome cycles through `npm run demo:phones` (install mkcert/Caddy first). Includes exactly-one-record-per-student confirmation and ESP32 network switching.
-3. Replace illustrative venue coordinates with the real room.
-4. Choose a licence, GitHub destination and authorize the push; authorize `npm run deploy:web -- --confirm` if the showcase page is wanted.
+Real Firebase project configured, owner provisioned, deny-all rules published and verified, connected sign-in/exchange verified, ESP32 flashed (Wi-Fi network seen), HTTPS phone origin served on the Mac. Details: [FINAL_CHECKLIST](FINAL_CHECKLIST.md) §3 and §6.
+
+## Pending (needs people and phones)
+
+1. Install `rootCA.pem` on an iPhone and an Android phone and open the Phone URL printed by `npm run demo:phones` (use `TECHPULSE_HTTPS_PORT` if 8443 is taken).
+2. Create teacher/student accounts (students register; the owner sets roles), put students on a schedule roster, run baseline and ESP32-required cycles, power-cycle the ESP32 on a supply, confirm exactly one record per student.
+3. Replace the illustrative venue coordinates with the real room.
+4. Choose a licence, GitHub destination and authorize the push; `npm run deploy:web -- --confirm` only if the showcase page is wanted.
 
 ## Rules for changes
 
