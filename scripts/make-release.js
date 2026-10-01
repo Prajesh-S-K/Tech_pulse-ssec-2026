@@ -41,6 +41,8 @@ export const INCLUDE_FILES = [
   "Start Tech Pulse.command",
   "Start Tech Pulse with Phones.command",
   "Start Tech Pulse.bat",
+  "Start Tech Pulse with Phones.bat",
+  "Stop Tech Pulse.bat",
   "Stop Tech Pulse.command",
 ];
 export const INCLUDE_DIRS = [

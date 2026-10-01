@@ -2,6 +2,13 @@
 
 > Entries below 0.3.0 are historical; several describe behaviour that has since been removed or replaced (see docs/PROJECT.md).
 
+## 0.6.0 — 2026-10-01
+
+### Added
+
+- **Big QR page**: the phone launcher opens a browser page with two large black-on-white QR codes (verified decodable) plus the addresses to type; terminal QR codes are no longer the main route.
+- **Windows support for the full version**: `Start Tech Pulse with Phones.bat`, `Stop Tech Pulse.bat`; winget installs mkcert/Caddy; Windows process detection for "stop older copies"; Windows-safe Caddyfile paths; automatic choice of the real Wi-Fi address (ignores WSL/VPN/VirtualBox adapters).
+
 ## 0.5.2 — 2026-10-01
 
 ### Fixed

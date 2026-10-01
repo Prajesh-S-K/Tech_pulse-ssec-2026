@@ -6,12 +6,16 @@ Camera and location only work on **HTTPS** (or localhost, which on a phone means
 
 ## Easiest way
 
-Double-click **`Start Tech Pulse with Phones.command`** (or `npm run full`). It installs the prerequisites if needed, stops older instances of this project, picks free ports and prints **two QR codes**:
+Double-click **`Start Tech Pulse with Phones.command`** (or `npm run full`). It installs the prerequisites if needed, stops older instances of this project, picks free ports and opens a **page with two big QR codes** (and lists the same addresses to type):
 
 1. **Scan to trust the demo certificate** — opens a small page on your Wi-Fi with a one-tap _iPhone profile_ and an _Android certificate_; it serves only the **public** certificate.
 2. **Scan to open Tech Pulse.**
 
 The certificate is also copied to `~/Downloads/TechPulse-rootCA.pem` and shown in Finder if you prefer AirDrop. The sections below explain what it does.
+
+**Windows:** double-click `Start Tech Pulse with Phones.bat`. It uses `winget` to install mkcert and Caddy once, creates the local certificate authority (Windows asks for permission), and then works like the Mac version. Allow the firewall prompt for private networks. `Stop Tech Pulse.bat` stops everything.
+
+**QR codes not scanning?** The page that opens in the browser shows large black-on-white codes (the small codes in a dark terminal are unreliable). You can also type the addresses printed under them. If a phone cannot load the page at all, check that it is on the same Wi-Fi and that the computer's firewall allows the program.
 
 ## Prerequisites (once)
 

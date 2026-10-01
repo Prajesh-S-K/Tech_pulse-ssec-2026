@@ -12,6 +12,7 @@ import {
   pickPort,
   portFree,
   lanAddresses,
+  chooseLan,
   readJson,
   runtimePath,
   depsCurrent,
@@ -20,6 +21,7 @@ import {
   recordBuild,
 } from "./lib/common.js";
 import { startCertServer } from "./lib/certserver.js";
+import { buildCaddyfile } from "./lib/caddyfile.js";
 import { openTarget } from "./lib/open.js";
 import { writeLogins } from "./lib/logins.js";
 
@@ -40,12 +42,15 @@ for (const tool of ["mkcert", "caddy"])
 const addresses = lanAddresses();
 if (!addresses.length)
   die("No network address found. Join the shared Wi-Fi network first.");
-const ip =
-  process.env.TECHPULSE_LAN_IP ||
-  (addresses.length === 1 ? addresses[0].address : null);
+const picked = chooseLan(addresses);
+const ip = process.env.TECHPULSE_LAN_IP || picked?.address;
 if (!ip || !addresses.some((a) => a.address === ip))
   die(
     `Choose your shared Wi-Fi address with TECHPULSE_LAN_IP=<address>. Available: ${addresses.map((a) => `${a.address} (${a.name})`).join(", ")}`,
+  );
+if (addresses.length > 1 && !process.env.TECHPULSE_LAN_IP)
+  say(
+    `Using ${ip} (${picked.name}). If phones are on a different network, set TECHPULSE_LAN_IP=<address>.`,
   );
 
 // 2. Changed address => the old certificate no longer matches; regenerate it.
@@ -114,11 +119,9 @@ if (regenerate) {
 const nodePort = await pickPort(Number(process.env.PORT || 5173));
 const origin = `https://${ip}:${httpsPort}`;
 const cfg = p("private", "https", "Caddyfile");
-writeFileSync(
-  cfg,
-  `{\n auto_https off\n admin off\n log {\n  level ERROR\n }\n}\n${origin} {\n bind ${ip}\n tls "${cert}" "${key}"\n reverse_proxy 127.0.0.1:${nodePort} {\n  flush_interval -1\n }\n}\n`,
-  { mode: 0o600 },
-);
+writeFileSync(cfg, buildCaddyfile({ origin, ip, cert, key, nodePort }), {
+  mode: 0o600,
+});
 {
   const v = run("caddy", [
     "validate",
@@ -228,26 +231,40 @@ if (!ready && !stopping) {
   // Certificate page on the LAN so phones can install the public CA by scanning a QR code.
   let certUrl = null;
   let certServer = null;
+  let setupUrl = null;
   try {
+    const QR = (await import("qrcode")).default;
+    const svg = (t) => QR.toString(t, { type: "svg", margin: 2, width: 360 });
     let certPort = 8765; // uncommon port: 8080 is used by many tools (and the Firestore emulator)
     for (let i = 0; i < 30 && !(await portFree(certPort, ip)); i++) certPort++;
+    certUrl = `http://${ip}:${certPort}/`;
     certServer = await startCertServer({
       ip,
       port: certPort,
       caFile,
       appUrl: origin,
+      setup: {
+        certUrl,
+        appUrl: origin,
+        qr: { cert: await svg(certUrl), app: await svg(origin) },
+      },
     });
-    certUrl = `http://${ip}:${certPort}/`;
+    setupUrl = `${certUrl}setup`;
     children.push({ exitCode: null, kill: () => certServer.close() });
   } catch {}
   let qrs = "";
   try {
     const QR = (await import("qrcode")).default;
-    const q = (t) => QR.toString(t, { type: "terminal", small: true });
+    const q = (t) => QR.toString(t, { type: "terminal", small: false });
     if (certUrl)
-      qrs += `  STEP 1 — scan to trust the demo certificate (once per phone):\n${await q(certUrl)}\n`;
-    qrs += `  STEP ${certUrl ? 2 : 1} — scan to open Tech Pulse:\n${await q(origin)}\n`;
+      qrs += `  STEP 1 — phone certificate (once per phone):  ${certUrl}\n`;
+    qrs += `  STEP ${certUrl ? 2 : 1} — open Tech Pulse:  ${origin}\n`;
+    if (!setupUrl) {
+      if (certUrl) qrs += `${await q(certUrl)}\n`;
+      qrs += `${await q(origin)}\n`;
+    }
   } catch {}
+  if (setupUrl) openTarget(setupUrl);
   const loginsFile = p("private", "DEMO-LOGINS.txt");
   if ((env.AUTH_MODE || "local") === "local") {
     const fresh = !existsSync(loginsFile);
@@ -270,7 +287,7 @@ if (!ready && !stopping) {
   console.log(`
 ==============================================================
   Phone URL:  ${origin}
-${certUrl ? `  Certificate page:  ${certUrl}\n` : ""}  Phones must be on the same Wi-Fi as this computer. After the ESP32
+${setupUrl ? `  Big QR codes (opened in your browser; re-open any time):  ${setupUrl}\n` : ""}  Phones must be on the same Wi-Fi as this computer. After the ESP32
   step, rejoin this Wi-Fi: mobile data cannot reach this private server.
   Computer certificate file: ~/Downloads/TechPulse-rootCA.pem (if made).
   Keep this window open. Stop with Ctrl+C.

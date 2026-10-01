@@ -111,6 +111,26 @@ export function lanAddresses() {
   return found;
 }
 
+// Picks the address phones should use. Virtual adapters (VPN, Docker, WSL, Hyper-V,
+// VirtualBox, VMware) are ignored; private LAN ranges are preferred (192.168 > 10 > 172.16-31).
+export function chooseLan(list) {
+  const virtual =
+    /vethernet|virtualbox|vmware|vbox|docker|wsl|hyper-v|loopback|tailscale|zerotier|utun|bridge|vnic|tun|tap/i;
+  const rank = (a) =>
+    /^192\.168\./.test(a)
+      ? 0
+      : /^10\./.test(a)
+        ? 1
+        : /^172\.(1[6-9]|2\d|3[01])\./.test(a)
+          ? 2
+          : 9;
+  const real = list.filter((x) => !virtual.test(x.name));
+  const pool = (real.length ? real : list)
+    .slice()
+    .sort((x, y) => rank(x.address) - rank(y.address));
+  return pool[0] || null;
+}
+
 export function run(cmd, args, options = {}) {
   // On Windows npm is npm.cmd and needs a shell.
   const shell = process.platform === "win32" && cmd === "npm";

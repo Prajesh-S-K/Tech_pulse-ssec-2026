@@ -54,37 +54,70 @@ if (wantsFirebase) {
     local ? "Mode: LOCAL (forced)." : "Mode: LOCAL (no Firebase configured).",
   );
 
-// 3. mkcert + Caddy: install automatically when Homebrew is there.
+// 3. mkcert + Caddy: install automatically (Homebrew on macOS, winget on Windows).
+const win = process.platform === "win32";
 const missing = ["mkcert", "caddy"].filter((t) => !which(t));
 if (missing.length) {
-  if (!which("brew"))
-    die(
-      `Missing ${missing.join(" and ")}. Install Homebrew (https://brew.sh) then run again, or: brew install mkcert caddy`,
+  if (win) {
+    if (!which("winget"))
+      die(
+        `Missing ${missing.join(" and ")}. Install them once: open the Microsoft Store, install "App Installer" (winget), or download mkcert and Caddy from their websites; then run this again.`,
+      );
+    const ids = { mkcert: "FiloSottile.mkcert", caddy: "CaddyServer.Caddy" };
+    say(
+      `Installing ${missing.join(" + ")} with winget (one time; Windows may ask permission)...`,
     );
-  say(`Installing ${missing.join(" + ")} with Homebrew (one time)...`);
-  if (run("brew", ["install", ...missing], { stdio: "inherit" }).status !== 0)
-    die("Homebrew could not install the tools. Run: brew install mkcert caddy");
+    for (const t of missing)
+      run(
+        "winget",
+        [
+          "install",
+          "--id",
+          ids[t],
+          "-e",
+          "--accept-source-agreements",
+          "--accept-package-agreements",
+        ],
+        { stdio: "inherit" },
+      );
+    if (!["mkcert", "caddy"].every((t) => which(t)))
+      die(
+        "The tools were installed but this window cannot see them yet. CLOSE this window and start again (Windows needs a fresh window to find new programs).",
+      );
+  } else {
+    if (!which("brew"))
+      die(
+        `Missing ${missing.join(" and ")}. Install Homebrew (https://brew.sh) then run again, or: brew install mkcert caddy`,
+      );
+    say(`Installing ${missing.join(" + ")} with Homebrew (one time)...`);
+    if (run("brew", ["install", ...missing], { stdio: "inherit" }).status !== 0)
+      die(
+        "Homebrew could not install the tools. Run: brew install mkcert caddy",
+      );
+  }
 }
 
-// 4. Local CA: create/trust it once (macOS asks for your password).
+// 4. Local CA: create/trust it once (the system asks for your password / permission).
 const caroot = run("mkcert", ["-CAROOT"]).stdout.trim();
 const caFile = join(caroot, "rootCA.pem");
 if (!existsSync(caFile)) {
   say(
-    "Creating the local certificate authority (macOS may ask for your password)...",
+    "Creating the local certificate authority (your computer may ask for permission)...",
   );
   if (run("mkcert", ["-install"], { stdio: "inherit" }).status !== 0)
     die("mkcert -install failed. Run it yourself once:  mkcert -install");
 }
 
-// 5. Public CA file → Downloads, revealed in Finder (the private key is never copied).
+// 5. Public CA file → Downloads, revealed in the file manager (the private key is never copied).
 const dl = join(homedir(), "Downloads");
 mkdirSync(dl, { recursive: true });
 const dest = join(dl, "TechPulse-rootCA.pem");
 copyFileSync(caFile, dest);
 say(`Phone certificate ready: ${dest}`);
-if (!args.includes("--no-open") && process.platform === "darwin")
-  run("open", ["-R", dest]);
+if (!args.includes("--no-open") && !process.env.TP_NO_OPEN) {
+  if (process.platform === "darwin") run("open", ["-R", dest]);
+  else if (win) run("explorer", [`/select,${dest}`]);
+}
 
 // 6. Network + ESP32 hints (informational, never blocking).
 const lan = lanAddresses();

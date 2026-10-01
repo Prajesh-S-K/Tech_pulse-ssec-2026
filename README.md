@@ -55,14 +55,19 @@ Passwords are generated for **your copy** the first time it starts and are in `p
 4. The teacher's **Estimated room occupancy** shows 1; the student's **Check out of room** brings it to 0 (attendance stays recorded).
 5. Try a rejection (student far away) to see **Checks and anomalies**, or pick the ESP32 proof policy to see the stricter mode. The Chrome device toolbar (F12 → phone icon) shows the phone layout.
 
-### 4 · Optional: real phones (Mac, about 3 minutes)
+### 4 · Optional: real phones (Mac or Windows, about 3 minutes)
 
-Double-click **`Start Tech Pulse with Phones.command`**. It stops any older copy, installs the two small helper tools with Homebrew if needed, and prints **two QR codes**:
+Start the phone version:
 
-1. **STEP 1 — scan to trust the demo certificate** (once per phone). iPhone: _Download profile → Settings → Profile Downloaded → Install_, then _Settings → General → About → Certificate Trust Settings_ → switch on. Android: download, open the file and confirm.
-2. **STEP 2 — scan to open Tech Pulse.** Sign in as a student and check in.
+- **Mac:** right-click **`Start Tech Pulse with Phones.command`** → Open (first time), then it runs.
+- **Windows:** double-click **`Start Tech Pulse with Phones.bat`**. _(First time it may install two small helper tools with Windows' installer, "winget", and ask for permission; if it says to close the window and start again, do that once.)_
 
-Phones must be on the **same Wi-Fi** as the computer. More detail and troubleshooting: [docs/PHONES.md](docs/PHONES.md). (Windows/Linux: use the desktop walkthrough above; the phone helper is Mac-only.)
+It stops any older copy and then **opens a page in your browser with two big QR codes**:
+
+1. **Step 1 — scan to trust the demo certificate** (once per phone). iPhone: tap _Allow_, then _Settings → Profile Downloaded → Install_, then _Settings → General → About → Certificate Trust Settings_ → switch it on. Android: open the downloaded file and confirm.
+2. **Step 2 — scan to open Tech Pulse.** Sign in as a student and check in.
+
+Phones must be on the **same Wi-Fi** as the computer (not mobile data, not a guest network that isolates devices). Can't scan? Type the two addresses printed under the codes. Windows may show a firewall prompt the first time — choose **Allow** for private networks. More detail: [docs/PHONES.md](docs/PHONES.md). _(The Windows phone setup is written and unit-tested but has not been run on a Windows machine.)_
 
 ### 5 · Optional: ESP32 classroom proof and Firebase
 

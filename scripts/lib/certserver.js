@@ -54,7 +54,25 @@ a.btn{display:block;background:#0f766e;color:#fff;text-decoration:none;text-alig
 <p>Stay on the same Wi-Fi as the computer. You can remove the certificate afterwards in Settings.</p></section></main></html>`;
 }
 
-export function startCertServer({ ip, port, caFile, appUrl }) {
+// Big, high-contrast QR codes for the computer screen (terminal QR codes are small and
+// often inverted by dark themes). `qr.cert` and `qr.app` are ready-made SVG strings.
+export function setupPage({ certUrl, appUrl, qr }) {
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tech Pulse — phone setup</title>
+<style>body{font:18px/1.5 system-ui,sans-serif;margin:0;background:#f5f7fb;color:#14243b}main{max-width:980px;margin:0 auto;padding:24px}
+h1{margin:0 0 4px}.row{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:760px){.row{grid-template-columns:1fr}}
+section{background:#fff;border:1px solid #dce3ec;border-radius:14px;padding:18px;text-align:center}
+section svg{width:100%;max-width:360px;height:auto;background:#fff}
+code{background:#ecfdf5;color:#0f766e;padding:4px 8px;border-radius:6px;word-break:break-all;display:inline-block}
+.hint{background:#fef3c7;border-radius:10px;padding:10px 14px;margin:14px 0}</style>
+<main><h1>Tech Pulse — phone setup</h1>
+<p>Point the phone camera at each code. The phone must be on the <b>same Wi-Fi</b> as this computer. Can't scan? Type the address under the code.</p>
+<div class="row">
+<section><h2>Step 1 · Trust the demo certificate</h2><p>Once per phone</p>${qr.cert}<p><code>${certUrl}</code></p></section>
+<section><h2>Step 2 · Open Tech Pulse</h2><p>After step 1</p>${qr.app}<p><code>${appUrl}</code></p></section></div>
+<p class="hint">iPhone: after downloading the profile open <b>Settings → Profile Downloaded → Install</b>, then <b>Settings → General → About → Certificate Trust Settings</b> and switch it on. Android: open the downloaded file and confirm. Keep the Tech Pulse window open on the computer.</p></main></html>`;
+}
+
+export function startCertServer({ ip, port, caFile, appUrl, setup = null }) {
   const pem = readFileSync(caFile, "utf8");
   const server = createServer((req, res) => {
     const send = (code, type, body, extra = {}) => {
@@ -70,6 +88,8 @@ export function startCertServer({ ip, port, caFile, appUrl }) {
     const path = (req.url || "/").split("?")[0];
     if (path === "/")
       return send(200, "text/html; charset=utf-8", page(appUrl));
+    if (path === "/setup" && setup)
+      return send(200, "text/html; charset=utf-8", setupPage(setup));
     if (path === "/rootCA.pem")
       return send(200, "application/x-x509-ca-cert", pem, {
         "Content-Disposition": 'attachment; filename="TechPulse-rootCA.crt"',

@@ -47,6 +47,10 @@ Extracted `tech-pulse-0.5.0.zip` into an empty folder and ran **`Start Tech Puls
 
 Reproduced the reported problem (VS Code terminal, default Node 22.9, red "too old" error and a wall of npm warnings) and fixed it: with the old Node first on `PATH`, `npm run demo` in a fresh extract now switches to the installed Node 24 by itself and prints only "Step 1 of 3 … Step 3 of 3", the address and the login-list path (no npm notices, no Caddy logs, no duplicate banners). If no suitable Node exists the message is three plain steps. Full output is shown only on failure.
 
+### 3e. QR codes and Windows (v0.6.0)
+
+Reported problem: the terminal QR codes were not scannable. Fix: the launcher now opens a browser page (`/setup`) with two large black-on-white QR codes. Verified by screenshotting that page and decoding it with macOS Vision: both codes decode to exactly `https://<LAN-IP>:8443` and `http://<LAN-IP>:8765/`. Windows: full-version launchers, winget tool install, Windows process detection, Windows-safe Caddyfile paths and Wi-Fi address selection are implemented and unit-tested with Windows-shaped input (`tests/windows.test.js`). **Not tested:** a real phone scanning the codes; any run on an actual Windows machine.
+
 ## 4. Fresh download acceptance
 
 Extracted `release/tech-pulse-0.3.0.zip` into an empty directory (no `private/`, data, dependencies or build) and ran the default `npm run demo` with **no** `STORE_PATH`/`CREDENTIALS_PATH`/`PRESENCE_CONFIG` overrides.

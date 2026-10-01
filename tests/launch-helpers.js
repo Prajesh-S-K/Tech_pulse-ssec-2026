@@ -29,7 +29,7 @@ export function project({
   mkdirSync(join(dir, "src"), { recursive: true });
   cpSync(join(repo, "scripts/demo.js"), join(dir, "scripts/demo.js"));
   cpSync(join(repo, "scripts/phones.js"), join(dir, "scripts/phones.js"));
-  for (const f of ["common", "open", "logins", "certserver"])
+  for (const f of ["common", "open", "logins", "certserver", "caddyfile"])
     cpSync(join(repo, `scripts/lib/${f}.js`), join(dir, `scripts/lib/${f}.js`));
   writeFileSync(
     join(dir, "package.json"),
