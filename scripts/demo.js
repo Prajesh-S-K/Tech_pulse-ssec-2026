@@ -34,14 +34,28 @@ if (!existsSync(p("package-lock.json")))
     "package-lock.json is missing. Download the complete release again (the lockfile is required so everyone installs the same dependencies).",
   );
 
+const showOutput = (r) => {
+  const text = `${r.stdout || ""}${r.stderr || ""}`
+    .trim()
+    .split("\n")
+    .slice(-25)
+    .join("\n");
+  if (text) console.error(`\n${text}\n`);
+};
+
 if (!depsCurrent()) {
-  say("Installing locked dependencies (npm ci; first run only)...");
-  const r = run("npm", ["ci"], { stdio: "inherit" });
-  if (r.status !== 0)
+  say(
+    "Step 1 of 3 — installing what the program needs (first time only, about 1–2 minutes)...",
+  );
+  // Output is hidden on success (npm prints harmless "deprecated"/"vulnerabilities" notes).
+  const r = run("npm", ["ci", "--no-audit", "--no-fund", "--loglevel=error"]);
+  if (r.status !== 0) {
+    showOutput(r);
     die(
-      "Dependency installation failed. Check your network connection (https://registry.npmjs.org must be reachable) and run the command again.",
+      "Installing failed. Please check that this computer is online (it downloads about 100 MB once), then start again.",
       r.status || 1,
     );
+  }
   recordDeps();
 }
 
@@ -59,10 +73,12 @@ if (connected) {
 }
 
 if (!buildCurrent()) {
-  say("Building the web client...");
-  const r = run("npm", ["run", "build"], { stdio: "inherit" });
-  if (r.status !== 0)
-    die("The web client build failed (see the output above).", r.status || 1);
+  say("Step 2 of 3 — preparing the app...");
+  const r = run("npm", ["run", "build", "--silent"]);
+  if (r.status !== 0) {
+    showOutput(r);
+    die("The web client build failed (see the lines above).", r.status || 1);
+  }
   recordBuild();
 }
 
@@ -75,13 +91,13 @@ try {
 }
 if (port !== wanted)
   say(
-    `Port ${wanted} is in use by another program (left untouched); using ${port}.`,
+    `Port ${wanted} is busy (another program is using it), so Tech Pulse uses ${port} instead. This is normal.`,
   );
 
 say(
   connected
-    ? "Starting Tech Pulse in CONNECTED (Firebase) mode..."
-    : "Starting Tech Pulse in LOCAL mode (no Firebase, no ESP32 required)...",
+    ? "Step 3 of 3 — starting Tech Pulse in CONNECTED (Firebase) mode..."
+    : "Step 3 of 3 — starting Tech Pulse (nothing else to set up)...",
 );
 const child = spawn(
   process.execPath,
@@ -94,6 +110,7 @@ const child = spawn(
       PORT: String(port),
       HOST: "127.0.0.1",
       AUTH_MODE: connected ? "firebase" : "local",
+      TP_QUIET: "1",
       // The independent local demo never reads (or fails on) Firebase configuration.
       ...(connected ? {} : { TP_IGNORE_RUNTIME: "1" }),
     },

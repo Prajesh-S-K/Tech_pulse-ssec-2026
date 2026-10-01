@@ -73,26 +73,36 @@ if (!(await portFree(httpsPort, ip)))
 
 if (!depsCurrent()) {
   say("Installing locked dependencies...");
-  if (run("npm", ["ci"], { stdio: "inherit" }).status !== 0)
-    die("Dependency installation failed.");
+  if (
+    run("npm", ["ci", "--no-audit", "--no-fund", "--loglevel=error"]).status !==
+    0
+  )
+    die("Installing failed. Check that this computer is online and try again.");
   recordDeps();
 }
 if (!buildCurrent()) {
   say("Building the web client...");
-  if (run("npm", ["run", "build"], { stdio: "inherit" }).status !== 0)
+  if (run("npm", ["run", "build", "--silent"]).status !== 0)
     die("The web client build failed.");
   recordBuild();
 }
 
 mkdirSync(certDir, { recursive: true });
 if (regenerate) {
-  const r = run(
-    "mkcert",
-    ["-cert-file", cert, "-key-file", key, ip, "localhost", "127.0.0.1", "::1"],
-    { stdio: "inherit" },
-  );
-  if (r.status !== 0)
-    die("mkcert failed. Run mkcert -install once, then try again.");
+  const r = run("mkcert", [
+    "-cert-file",
+    cert,
+    "-key-file",
+    key,
+    ip,
+    "localhost",
+    "127.0.0.1",
+    "::1",
+  ]);
+  if (r.status !== 0) {
+    console.error(`${r.stdout || ""}${r.stderr || ""}`);
+    die("mkcert failed. Run  mkcert -install  once, then try again.");
+  }
   mkdirSync(p("private"), { recursive: true });
   writeFileSync(
     runtimePath,
@@ -106,18 +116,26 @@ const origin = `https://${ip}:${httpsPort}`;
 const cfg = p("private", "https", "Caddyfile");
 writeFileSync(
   cfg,
-  `{\n auto_https off\n admin off\n}\n${origin} {\n bind ${ip}\n tls "${cert}" "${key}"\n reverse_proxy 127.0.0.1:${nodePort} {\n  flush_interval -1\n }\n}\n`,
+  `{\n auto_https off\n admin off\n log {\n  level ERROR\n }\n}\n${origin} {\n bind ${ip}\n tls "${cert}" "${key}"\n reverse_proxy 127.0.0.1:${nodePort} {\n  flush_interval -1\n }\n}\n`,
   { mode: 0o600 },
 );
-if (
-  run("caddy", ["validate", "--config", cfg, "--adapter", "caddyfile"], {
-    stdio: "inherit",
-  }).status !== 0
-)
-  die("The generated Caddy configuration did not validate.");
+{
+  const v = run("caddy", [
+    "validate",
+    "--config",
+    cfg,
+    "--adapter",
+    "caddyfile",
+  ]);
+  if (v.status !== 0) {
+    console.error(`${v.stdout || ""}${v.stderr || ""}`);
+    die("The generated Caddy configuration did not validate.");
+  }
+}
 
 const env = {
   ...process.env,
+  TP_QUIET: "1",
   HOST: "127.0.0.1",
   PORT: String(nodePort),
   PUBLIC_ORIGIN: origin,

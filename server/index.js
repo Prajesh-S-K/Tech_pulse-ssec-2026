@@ -10,6 +10,10 @@ import {
   validateFirebaseConfig,
 } from "./firebase/config.js";
 
+// Launchers set TP_QUIET so their own friendly banner is the only message.
+const quietLog = (...a) => {
+  if (!process.env.TP_QUIET) console.log(...a);
+};
 const rootDir = fileURLToPath(new URL("../", import.meta.url));
 const runtime = process.env.TP_IGNORE_RUNTIME
   ? {}
@@ -76,7 +80,7 @@ if (mode === "firebase") {
     () => persistence.mutate(() => store.expireReviewPhotos()).catch(() => {}),
     60000,
   );
-  console.log(
+  quietLog(
     `CONNECTED mode: Firebase project ${cfg.projectId}${emulator ? " (EMULATOR)" : ""}`,
   );
 } else {
@@ -95,7 +99,7 @@ if (mode === "firebase") {
     reviewTtlMs: Number(process.env.TP_REVIEW_TTL_MS) || undefined,
   });
   cleanup = setInterval(() => store.expireReviewPhotos(), 60000);
-  console.log(
+  quietLog(
     "Initial account passwords: private/account-passwords.json (keep private)",
   );
 }
@@ -118,7 +122,7 @@ if (process.argv.includes("--production")) {
 }
 const port = Number(process.env.PORT || 5173);
 app.listen(port, process.env.HOST || "127.0.0.1", () =>
-  console.log(
+  quietLog(
     `${mode === "firebase" ? "Connected" : "Local"} demo: http://127.0.0.1:${port}`,
   ),
 );

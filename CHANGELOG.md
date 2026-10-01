@@ -2,6 +2,14 @@
 
 > Entries below 0.3.0 are historical; several describe behaviour that has since been removed or replaced (see docs/PROJECT.md).
 
+## 0.5.1 — 2026-10-01
+
+### Changed
+
+- Start is now quiet and plain: three numbered steps, no npm "deprecated/vulnerabilities" noise, no Caddy JSON logs, no duplicate server banners; full output only appears if something fails.
+- A too-old default Node is replaced automatically by a newer installed one (nvm/Homebrew) instead of failing; otherwise a 3-step "install Node LTS" message.
+- Port-busy note reworded ("This is normal"); README start steps rewritten for first-time users (what to click, what you will see).
+
 ## 0.5.0 — 2026-10-01
 
 ### Added (judge experience)

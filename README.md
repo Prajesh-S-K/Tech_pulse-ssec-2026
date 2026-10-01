@@ -10,17 +10,31 @@ Students check in from a phone (location + camera + QR), the responsible teacher
 
 ### What you need
 
-A computer with **Node.js 22.12 or newer** (free: https://nodejs.org/ → LTS installer). Nothing else. The first start downloads the dependencies once (about 1–3 minutes, needs internet); later starts take a few seconds.
+A computer with **Node.js** (free). Check it once: open **Terminal** (Mac) or **Command Prompt** (Windows), type `node -v`, press Enter. If it shows **v22.12 or higher** you are set. If it says "not found" or a lower number, install it: https://nodejs.org/ → download the **LTS** installer → run it → close and reopen the window. (On a Mac with several Node versions the start files pick a suitable one by themselves.)
 
-### 1 · Extract and start (pick one)
+The first start downloads what the program needs once (about 1–2 minutes, needs internet). Later starts take a few seconds.
 
-| Your computer  | Do this                                                                                 |
-| -------------- | --------------------------------------------------------------------------------------- |
-| **Mac**        | Double-click **`Start Tech Pulse.command`** (first time: right-click → _Open_ → _Open_) |
-| **Windows**    | Double-click **`Start Tech Pulse.bat`**                                                 |
-| Any / terminal | Open a terminal in this folder and run `npm run demo`                                   |
+### 1 · Extract and start
 
-Your browser opens the portal by itself, and a text file with **all demo logins** opens too (`private/DEMO-LOGINS.txt`). Leave the window open; close it (or press Ctrl+C) to stop.
+**First, extract the zip** (double-click it) and open the folder it creates.
+
+**On a Mac:**
+
+1. In the folder, find the file **`Start Tech Pulse.command`** (icon: a small black screen).
+2. **Right-click it → Open.** A warning window appears (macOS asks about every downloaded program) → click **Open** again. _(Only the first time; afterwards a normal double-click works.)_
+3. A black **Terminal window** opens and shows three steps (“Step 1 of 3 … Step 3 of 3”). **You do not type anything.** Leave this window open.
+
+**On Windows:** double-click **`Start Tech Pulse.bat`** (if Windows warns, choose _More info → Run anyway_). A black window shows the same three steps.
+
+**Prefer typing?** Open Terminal in this folder (Mac: type `cd ` then drag the folder into Terminal, press Enter) and run:
+
+```bash
+npm run demo
+```
+
+**What happens next:** within about a minute your **browser opens the portal by itself** and a **text file with all demo logins opens** (`private/DEMO-LOGINS.txt`). If the browser does not open, copy the address shown after **Open:** in the black window into your browser. To stop, close the black window (or press Ctrl+C).
+
+_A line saying “Port 5173 is busy … uses 5174 instead” is normal, not an error._
 
 ### 2 · Demo logins
 

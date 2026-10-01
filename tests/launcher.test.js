@@ -24,7 +24,8 @@ test("unsupported Node stops before anything is installed", () => {
   const r = demo(dir, { TP_FAKE_NODE_VERSION: "20.1.0" });
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, /too old/);
-  assert.match(r.stderr, /Node 24/);
+  assert.match(r.stderr, /nodejs\.org/);
+  assert.match(r.stderr, /LTS/);
   assert.ok(!existsSync(join(dir, "node_modules")));
 });
 
@@ -53,8 +54,8 @@ test("stale dependency stamp triggers npm ci; a failed install exits nonzero wit
     npm_config_fetch_retries: "0",
   });
   assert.notEqual(r.status, 0);
-  assert.match(r.stdout + r.stderr, /Installing locked dependencies/);
-  assert.match(r.stderr, /Dependency installation failed/);
+  assert.match(r.stdout + r.stderr, /installing what the program needs/);
+  assert.match(r.stderr, /Installing failed/);
   assert.doesNotMatch(r.stdout, /Open:/);
 });
 
@@ -128,7 +129,10 @@ test("occupied preferred port is left alone and the next free port is announced"
   child.kill("SIGINT");
   await new Promise((r) => child.on("exit", r));
   blocker.close();
-  assert.match(out, new RegExp(`${taken} is in use by another program`));
+  assert.match(
+    out,
+    new RegExp(`${taken} is busy \\(another program is using it\\)`),
+  );
   const m = /Open:\s+http:\/\/127\.0\.0\.1:(\d+)/.exec(out);
   assert.ok(m && Number(m[1]) !== taken);
 });
@@ -224,4 +228,50 @@ test("build freshness covers lockfile and config changes, not only source", () =
   stamp(dir);
   writeFileSync(join(dir, "src/a.js"), "2");
   assert.equal(probe(), "false");
+});
+
+test("a too-old default Node is replaced by a newer installed one (never an error when one exists)", async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, chmodSync } =
+    await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { findNewerNode } = await import("../scripts/lib/common.js");
+  const home = mkdtempSync(join(tmpdir(), "tp-home-"));
+  const mk = (ver) => {
+    const bin = join(home, ".nvm", "versions", "node", `v${ver}`, "bin");
+    mkdirSync(bin, { recursive: true });
+    writeFileSync(join(bin, "node"), `#!/bin/sh\necho ${ver}\n`);
+    chmodSync(join(bin, "node"), 0o755);
+    return bin;
+  };
+  mk("20.1.0");
+  mk("22.9.0");
+  const good = mk("24.9.9");
+  const found = findNewerNode(home);
+  assert.equal(found.dir, good);
+  // only too-old versions installed -> nothing to switch to
+  const old = mkdtempSync(join(tmpdir(), "tp-home-old-"));
+  mkdirSync(join(old, ".nvm", "versions", "node", "v22.9.0", "bin"), {
+    recursive: true,
+  });
+  writeFileSync(
+    join(old, ".nvm", "versions", "node", "v22.9.0", "bin", "node"),
+    "#!/bin/sh\necho 22.9.0\n",
+  );
+  chmodSync(
+    join(old, ".nvm", "versions", "node", "v22.9.0", "bin", "node"),
+    0o755,
+  );
+  const none = findNewerNode(old);
+  assert.ok(
+    none === null ||
+      none.dir !== join(old, ".nvm", "versions", "node", "v22.9.0", "bin"),
+  );
+});
+
+test("install and build noise is hidden on success but shown on failure", () => {
+  const src = readFileSync(join(repo, "scripts/demo.js"), "utf8");
+  assert.match(src, /--loglevel=error/);
+  assert.match(src, /--no-audit/);
+  assert.match(src, /Step 1 of 3/);
+  assert.doesNotMatch(src, /run\("npm", \["ci"\], \{ stdio: "inherit" \}\)/);
 });

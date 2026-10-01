@@ -24,11 +24,56 @@ export function nodeVersionOk(version = reportedNode()) {
   return true;
 }
 
+// Looks for a newer Node (nvm, Homebrew, /usr/local) when the default one is too old.
+export function findNewerNode(home = process.env.HOME || "") {
+  const dirs = [];
+  try {
+    const base = join(home, ".nvm", "versions", "node");
+    if (existsSync(base))
+      for (const v of readdirSync(base).sort().reverse())
+        dirs.push(join(base, v, "bin"));
+  } catch {}
+  dirs.push("/opt/homebrew/bin", "/usr/local/bin");
+  for (const dir of dirs) {
+    const bin = join(dir, "node");
+    if (!existsSync(bin)) continue;
+    const r = spawnSync(bin, ["-p", "process.versions.node"], {
+      encoding: "utf8",
+    });
+    if (r.status === 0 && nodeVersionOk(r.stdout.trim())) return { bin, dir };
+  }
+  return null;
+}
+
+// If the default Node is too old but a good one is installed, silently continue with it
+// (same script, same arguments). Otherwise explain, in plain words, what to install.
 export function requireNode() {
   if (nodeVersionOk()) return;
+  if (!process.env.TP_REEXEC) {
+    const better = findNewerNode();
+    if (better) {
+      const npmDir = [
+        "/opt/homebrew/bin",
+        "/usr/local/bin",
+        better.dir,
+        ...(process.env.PATH || "").split(":"),
+      ].find((d) => d && existsSync(join(d, "npm")));
+      const PATH = [better.dir, npmDir, process.env.PATH]
+        .filter(Boolean)
+        .join(":");
+      const r = spawnSync(better.bin, process.argv.slice(1), {
+        stdio: "inherit",
+        env: { ...process.env, PATH, TP_REEXEC: "1" },
+      });
+      process.exit(r.status ?? 1);
+    }
+  }
   console.error(
-    `Node ${reportedNode()} is too old. Tech Pulse needs Node ${MIN_NODE.join(".")} or newer; Node 24 LTS is recommended.\n` +
-      "Install it from https://nodejs.org/ (or: nvm install 24 && nvm use 24), then run this command again.",
+    `\nThis computer's Node.js (version ${reportedNode()}) is too old for Tech Pulse (needs ${MIN_NODE.join(".")} or newer).\n\n` +
+      "  What to do (takes about 2 minutes, free):\n" +
+      "   1. Open  https://nodejs.org/  and download the LTS installer (version 24).\n" +
+      "   2. Run the installer, then CLOSE this window and open a new one.\n" +
+      "   3. Start Tech Pulse again.\n",
   );
   process.exit(1);
 }
