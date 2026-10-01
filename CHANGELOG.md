@@ -2,6 +2,12 @@
 
 > Entries below 0.3.0 are historical; several describe behaviour that has since been removed or replaced (see docs/PROJECT.md).
 
+## 0.5.2 — 2026-10-01
+
+### Fixed
+
+- Phone launcher starts the HTTPS proxy only after the server answers (no "connection refused" log spam) and no longer triggers a Node TLS deprecation warning.
+
 ## 0.5.1 — 2026-10-01
 
 ### Changed

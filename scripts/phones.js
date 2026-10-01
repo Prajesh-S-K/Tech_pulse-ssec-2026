@@ -172,13 +172,6 @@ start("Node server", process.execPath, [
   p("server", "index.js"),
   "--production",
 ]);
-start("Caddy proxy", "caddy", [
-  "run",
-  "--config",
-  cfg,
-  "--adapter",
-  "caddyfile",
-]);
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => stop(0));
 
 // 4. Announce the phone URL only when Node answers locally AND the proxy answers on the LAN address.
@@ -195,21 +188,34 @@ const get = (opts) =>
 const caFile = `${caroot}/rootCA.pem`;
 const ca = existsSync(caFile) ? readFileSync(caFile) : undefined;
 const deadline = Date.now() + 60000;
+// Start the proxy only once Node answers, so Caddy never logs "connection refused" noise.
+let proxyStarted = false;
 while (!stopping && Date.now() < deadline) {
   let local = 0;
   try {
     local = (await fetch(`http://127.0.0.1:${nodePort}/api/config`)).status;
   } catch {}
-  const proxied = await get({
-    host: ip,
-    port: httpsPort,
-    path: "/api/config",
-    ca,
-    servername: ip,
-  });
-  if (local === 200 && proxied === 200) {
-    ready = true;
-    break;
+  if (local === 200 && !proxyStarted) {
+    proxyStarted = true;
+    start("Caddy proxy", "caddy", [
+      "run",
+      "--config",
+      cfg,
+      "--adapter",
+      "caddyfile",
+    ]);
+  }
+  if (proxyStarted) {
+    const proxied = await get({
+      host: ip,
+      port: httpsPort,
+      path: "/api/config",
+      ca,
+    });
+    if (local === 200 && proxied === 200) {
+      ready = true;
+      break;
+    }
   }
   await new Promise((r) => setTimeout(r, 400));
 }

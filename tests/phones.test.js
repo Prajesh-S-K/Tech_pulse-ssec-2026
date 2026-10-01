@@ -53,7 +53,7 @@ const phones = (dir, bin, env = {}) =>
     env: {
       ...process.env,
       PATH: `${bin}:${dirname(process.execPath)}:/usr/bin:/bin:/usr/sbin`,
-      PORT: "0",
+      PORT: String(40000 + Math.floor(Math.random() * 20000)),
       TECHPULSE_LAN_IP: lan,
       ...env,
     },

@@ -169,7 +169,7 @@ test(
     const env = {
       ...process.env,
       PATH: `${bin}:${join(process.execPath, "..")}:/usr/bin:/bin:/usr/sbin`,
-      PORT: "0",
+      PORT: String(40000 + Math.floor(Math.random() * 20000)),
       TECHPULSE_LAN_IP: lan,
     };
     delete env.TECHPULSE_HTTPS_PORT;
