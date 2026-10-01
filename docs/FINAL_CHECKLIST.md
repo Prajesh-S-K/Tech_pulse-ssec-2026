@@ -1,0 +1,92 @@
+# Final checklist — actual results
+
+Run on 2026-10-01 (Asia/Kolkata) with Node 24.19.0, macOS (Apple Silicon). Results are copied from real command output. **Not tested** means nobody has performed it; it is never implied to pass.
+
+## 1. Automated software checks (local, isolated fixtures)
+
+| Command                             | Result                                                                                                                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm test`                          | **92 / 92 passed**, 0 failed, 0 skipped (policy, API, launcher, phones, tooling, persistence, occupancy, concurrency, release)                                           |
+| `npm run test:browser`              | **11 / 11 passed** in Chrome (sign-in, review drawer, expiry, policy/replacement, occupancy/check-out/anomalies, maps, three phone widths, permissions/camera/clipboard) |
+| `npm run build`                     | passed (one bundle-size warning; Firebase SDK is a separate lazy chunk)                                                                                                  |
+| `npm run format:check`              | passed                                                                                                                                                                   |
+| `npm run doctor`                    | runs read-only; reports the Admin key as invalid (see §3)                                                                                                                |
+| `npm run esp32:compile`             | passed — 931,828 bytes (71%) program, 47,152 bytes (14%) dynamic memory                                                                                                  |
+| `npm run esp32:upload -- --dry-run` | passed — discovery and port-free only; nothing probed, compiled or written                                                                                               |
+
+All of these use temporary data/credential/presence directories. **No test touched `server/data/store.json` or `private/`.**
+
+## 2. Firebase emulator checks (Auth + Firestore emulators, JDK 26)
+
+`npm run test:firebase` → **14 / 14 integration tests** and **2 / 2 browser UI tests** passed, exit 0. They cover: ID-token verification and role loading from server records; local login disabled; role elevation is developer-only; student/teacher authorization and enrollment; atomic approval writing attempt + attendance + presence; duplicate approval returns the existing result; failed commit → `503 PERSISTENCE_FAILED`, attempt still awaiting review, evidence kept, nothing recorded; restart requires recapture; 8-hour cap from original sign-in and logout revocation; deny-all Firestore rules block signed-in and anonymous browser SDK access; check-out persistence and no reactivation; replacement chain in both approval orders including concurrent approval → exactly one attendance and one presence; **repository regression tests** (real `FirestoreRepository` on the emulator): creating an existing attendance document does not overwrite it, creating an existing checked-out presence keeps `checkedOutAt`, an authorized checkout update still persists, and the persistence cache adopts the durable record when Firestore retained a different one (these fail against the previous commit logic); real UI registration, profile update, reload, silent session renewal (limit not extended), logout without automatic re-login, teacher sign-in.
+
+Emulator-tested ≠ real-project-tested.
+
+## 3. Real Firebase project (`tech-pulse-ssec`)
+
+| Check                                                                                              | Result                                                                                                                                                                                            |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Admin credential file                                                                              | **Invalid**: `private/firebase-service-account.json` is a 183-byte Node code snippet, not a service-account JSON key. Every real-project check below is blocked until the real key is downloaded. |
+| Web configuration (public)                                                                         | Supplied by the owner; entered through `npm run setup`                                                                                                                                            |
+| Authentication/Firestore live connection, owner init, rules deployment, real attendance round trip | **Not tested**                                                                                                                                                                                    |
+| Firestore rules currently published in the real project                                            | **Not inspected / not changed** — the repo's deny-all rules are _not_ deployed                                                                                                                    |
+
+## 4. Fresh download acceptance
+
+Extracted `release/tech-pulse-0.3.0.zip` into an empty directory (no `private/`, data, dependencies or build) and ran the default `npm run demo` with **no** `STORE_PATH`/`CREDENTIALS_PATH`/`PRESENCE_CONFIG` overrides.
+
+| Check                                                                                                                      | Result                                                                                                                                                                                       |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Clean environment (`env -i`, Node 24.19.0 first on PATH), no `private/`, data, `node_modules` or `dist`, no path overrides | `npm run demo` ran `npm ci`, built the client, started and printed the URL only after the server answered                                                                                    |
+| Preferred port occupied by an unrelated program (the owner's own server on 5173)                                           | That program kept running untouched; the launcher announced and used **5174**                                                                                                                |
+| Generated credentials                                                                                                      | `private/account-passwords.json` created with 0600 permissions, 9 unique accounts; banner prints the path, never a password                                                                  |
+| Login                                                                                                                      | teacher/student login with generated passwords succeeded; a wrong password returned 401                                                                                                      |
+| Sessions at first start                                                                                                    | **0** (no sample sessions or attendance created)                                                                                                                                             |
+| Teacher-created session → student claim → submit → teacher approval                                                        | session created (200); student reached _awaiting review_; approval gave `VERIFIED` / `COMPLETED`; exactly **1** attendance record; a student calling a teacher API got 403                   |
+| Ctrl+C                                                                                                                     | Port released; no orphan process                                                                                                                                                             |
+| Restart                                                                                                                    | No reinstall or rebuild; the session, attendance, attempt and occupancy estimate were still present; **no new sample sessions**; the password file byte-identical; student login still valid |
+| Unsupported Node, missing lockfile, failed install/build, server dying at startup                                          | Covered by `tests/launcher.test.js` (clear errors, non-zero exit, no ready banner)                                                                                                           |
+
+These results were obtained on an earlier build and repeated on the archive containing the final `FirestoreRepository` create-guard fix (identical results, including port 5174 selection while an unrelated program held 5173). The shipped archive differs from that tested build only in this results text.
+
+## 5. Release contents
+
+| Check                                                            | Result                                                                                                                                                                                                                     |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Archive                                                          | `release/tech-pulse-0.3.0.zip` from an explicit allow-list (`npm run release`); manifest with SHA-256 per file in `release/MANIFEST.txt`                                                                                   |
+| Contents                                                         | source, `package-lock.json`, `.nvmrc`, dotfiles needed for setup, `examples/` placeholders, docs and synthetic screenshots, tests, firmware source                                                                         |
+| Excluded                                                         | `private/`, `server/data/`, generated `config.h`, `firmware/build/`, dependencies, build output, logs, `test-results/`, the source PDF, any key/credential-shaped file                                                     |
+| Secret scan (manifest, then the extracted archive independently) | **0 findings**; findings would print only `file:line`. No Firebase web API key appears anywhere in the archive; if one did it would be reported as a public client-configuration note, separate from Admin/signing secrets |
+| Machine-specific paths                                           | none in the archive (scanner flags them)                                                                                                                                                                                   |
+| Git exclusions                                                   | verified in a temporary repository first: 101 tracked files; `private/`, `server/data/`, `firmware/build/`, `config.h`, `dist/`, `release/`, logs, the PDF and `.DS_Store` are all ignored                                 |
+| Real repository                                                  | `git init` run only after the checks above; files staged for review, **no commit made, nothing pushed**                                                                                                                    |
+
+## 6. Physical checks
+
+| Check                                                             | Result                                                                                |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Connected board identity (read-only `chip-id`/`flash-id`)         | `ESP32-D0WD-V3`, 4MB flash — **discovery and verification only**                      |
+| Flash the ESP32                                                   | **Not performed** (awaiting authorization)                                            |
+| Serial readiness at 115200 baud                                   | **Not tested**                                                                        |
+| Standalone USB power-up, Wi-Fi + portal, repeat after power cycle | **Not tested**                                                                        |
+| iPhone Safari attendance cycle (HTTPS, network switching)         | **Not tested**                                                                        |
+| Android Chrome attendance cycle                                   | **Not tested**                                                                        |
+| Missing/altered/expired/cross-student proof on real hardware      | **Not tested** (software fixtures pass)                                               |
+| Exactly one approved record per student after real cycles         | **Not tested**                                                                        |
+| Real mkcert/Caddy HTTPS run                                       | **Not tested** (mkcert and Caddy not installed; launcher logic tested with stand-ins) |
+| Battery measurement                                               | **Not tested**                                                                        |
+
+## 7. Known unresolved items
+
+- Real Firebase validation and rules publication (needs the key, an owner account, and `firebase login`).
+- Hardware/phone acceptance above.
+- Illustrative venue coordinates still need replacing with the real demonstration room.
+- No licence selected; nothing pushed, deployed or flashed.
+
+## 8. Publication gate
+
+- [x] Secret/private-material scan of the release manifest and archive (see §5)
+- [x] Git exclusions verified in a temporary repository before the real repository was initialised (staged, uncommitted)
+- [ ] Licence and GitHub destination chosen — **awaiting owner**
+- [ ] Push authorised — **awaiting owner**
+- [ ] `npm run deploy:web -- --confirm` authorised (optional) — **awaiting owner**

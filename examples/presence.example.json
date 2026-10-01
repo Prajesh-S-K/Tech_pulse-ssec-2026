@@ -1,0 +1,7 @@
+{
+  "deviceId": "ssec-room-1",
+  "roomId": "room-1",
+  "ssid": "TechPulse-Classroom",
+  "wifiPassword": "GENERATED_BY_npm_run_esp32_prepare",
+  "secret": "64_HEX_CHARACTERS_GENERATED_BY_npm_run_esp32_prepare"
+}

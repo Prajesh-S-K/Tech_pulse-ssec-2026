@@ -1,0 +1,44 @@
+# Local system/editor files
+.DS_Store
+.idea/
+*.swp
+
+# Dependencies and generated files
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.firebase/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*service-account*.json
+*serviceAccount*.json
+firebase-adminsdk*.json
+*.pem
+*.key
+
+# Private/demo evidence and local working material
+private/
+local-data/
+server/data/
+evidence/
+work/
+
+# Reference document: redistribution not decided
+/problem-statements.pdf
+
+# Browser checks
+test-results/
+playwright-report/
+
+# Generated device credentials / firmware build
+firmware/TECH_PULSE_COMPANION/config.h
+firmware/build/
+scratch/
+
+dist-web/
+release/

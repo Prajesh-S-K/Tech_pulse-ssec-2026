@@ -1,0 +1,8 @@
+{
+  "folders": [{ "path": "." }],
+  "settings": {
+    "files.insertFinalNewline": true,
+    "editor.tabSize": 2,
+    "files.exclude": { "**/.DS_Store": true }
+  }
+}

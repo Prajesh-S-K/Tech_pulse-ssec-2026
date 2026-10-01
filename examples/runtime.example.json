@@ -1,0 +1,15 @@
+{
+  "mode": "firebase",
+  "firebase": {
+    "web": {
+      "apiKey": "YOUR_FIREBASE_WEB_API_KEY",
+      "authDomain": "tech-pulse-ssec.firebaseapp.com",
+      "projectId": "tech-pulse-ssec",
+      "appId": "YOUR_FIREBASE_WEB_APP_ID",
+      "messagingSenderId": "YOUR_SENDER_ID",
+      "storageBucket": "tech-pulse-ssec.firebasestorage.app"
+    },
+    "serviceAccountPath": "private/firebase-service-account.json"
+  },
+  "phones": { "lastIp": "written automatically by npm run demo:phones" }
+}

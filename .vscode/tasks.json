@@ -1,0 +1,8 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "Start attendance demo", "type": "shell", "command": "npm run dev", "problemMatcher": [] },
+    { "label": "Test attendance rules", "type": "shell", "command": "npm test", "group": "test", "problemMatcher": [] },
+    { "label": "Build attendance demo", "type": "shell", "command": "npm run build", "group": "build", "problemMatcher": [] }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "tech-pulse-attendance",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "node server/index.js",
+    "build": "vite build",
+    "start": "node server/index.js --production",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "playwright test",
+    "format": "prettier --write src server tests scripts *.js *.json",
+    "format:check": "prettier --check src server tests scripts *.js *.json",
+    "esp32:prepare": "node scripts/prepare-companion.js",
+    "esp32:compile": "node scripts/compile-companion.js",
+    "esp32:upload": "node scripts/esp32-upload.js",
+    "demo": "node scripts/demo.js",
+    "setup": "node scripts/setup.js",
+    "doctor": "node scripts/doctor.js",
+    "demo:phones": "node scripts/phones.js",
+    "firebase:init": "node scripts/firebase-init.js",
+    "deploy:web": "node scripts/deploy-web.js",
+    "esp32:upload:port": "node scripts/esp32-upload.js",
+    "test:firebase": "node scripts/test-firebase.js",
+    "demo:connected": "node scripts/demo.js --connected",
+    "release": "node scripts/make-release.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "firebase": "^12.19.0",
+    "firebase-admin": "^14.5.0",
+    "jpeg-js": "^0.4.4",
+    "leaflet": "^1.9.4",
+    "pngjs": "^7.0.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "firebase-tools": "^15.32.1",
+    "prettier": "^3.9.9",
+    "vite": "^7.1.0"
+  }
+}
