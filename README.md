@@ -4,6 +4,19 @@ A downloadable campus attendance portal: students check in from a phone (locatio
 
 > Honest scope: this is a prototype built for the Tech Pulse 2026 problem statement (Geo-Fenced Smart Attendance & Resource Management). Identity is confirmed by a **teacher**, not by software; image similarity is advisory only. Physical-device checks (phones, standalone ESP32) are listed as *not tested* until someone performs them — see [docs/FINAL_CHECKLIST.md](docs/FINAL_CHECKLIST.md).
 
+## Full version in one step (Firebase + phones + ESP32)
+
+On the Mac that runs the portal, **double-click `Start Tech Pulse.command`** (or run `npm run full`). It:
+
+- finds a suitable Node by itself and tells you if none is installed;
+- **stops older Tech Pulse processes** from this folder (never unrelated programs);
+- checks Firebase configuration first and, if it is unusable, says what to fix (`npm run full -- --local` runs without Firebase);
+- installs mkcert/Caddy with Homebrew if they are missing and creates the local certificate authority once;
+- **copies the phone certificate to `~/Downloads/TechPulse-rootCA.pem` and reveals it in Finder** (the private key is never copied);
+- picks free ports instead of failing, builds the client if needed and prints the **phone URL plus a QR code**.
+
+On each phone: open `TechPulse-rootCA.pem` (AirDrop it from Downloads) and trust it ([docs/PHONES.md](docs/PHONES.md)), scan the QR code. Stop everything with **`Stop Tech Pulse.command`** (or `npm run stop`) or Ctrl+C. Details for Firebase and the ESP32 are in [docs/FIREBASE.md](docs/FIREBASE.md) and [docs/ESP32_COMPANION.md](docs/ESP32_COMPANION.md); the ESP32 is flashed once with `npm run esp32:upload`.
+
 ## Judge quick start
 
 1. Install **Node 24** once (https://nodejs.org/ — any Node ≥ 22.12 works; `nvm install 24` also fine).
@@ -42,6 +55,8 @@ A missing or offline ESP32 never blocks baseline sessions and can never produce 
 |---|---|
 | `npm run demo` | Local mode: check Node, `npm ci` if needed, build if stale, start on loopback, announce when reachable |
 | `npm run demo:connected` | Same, but explicitly Firebase mode — fails clearly if configuration is incomplete |
+| `npm run full` · `Start Tech Pulse.command` | Everything above in one step (Firebase if configured + phones) |
+| `npm run stop` · `Stop Tech Pulse.command` | Stops Tech Pulse processes from this folder only |
 | `npm run demo:phones` | Private HTTPS address for phones (needs mkcert + Caddy) — [docs/PHONES.md](docs/PHONES.md) |
 | `npm run setup` | Writes private runtime configuration (local or Firebase) |
 | `npm run firebase:init` | Provisions the first owner (developer) account — [docs/FIREBASE.md](docs/FIREBASE.md) |

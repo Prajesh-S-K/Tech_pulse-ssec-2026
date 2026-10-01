@@ -6,7 +6,7 @@ Run on 2026-10-01 (Asia/Kolkata) with Node 24.19.0, macOS (Apple Silicon). Resul
 
 | Command                             | Result                                                                                                                                                                   |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm test`                          | **92 / 92 passed**, 0 failed, 0 skipped (policy, API, launcher, phones, tooling, persistence, occupancy, concurrency, release)                                           |
+| `npm test`                          | **92 / 92 passed**, 0 failed, 0 skipped (policy, API, launcher, phones, one-command launcher, tooling, persistence, occupancy, concurrency, release)                     |
 | `npm run test:browser`              | **11 / 11 passed** in Chrome (sign-in, review drawer, expiry, policy/replacement, occupancy/check-out/anomalies, maps, three phone widths, permissions/camera/clipboard) |
 | `npm run build`                     | passed (one bundle-size warning; Firebase SDK is a separate lazy chunk)                                                                                                  |
 | `npm run format:check`              | passed                                                                                                                                                                   |
@@ -34,6 +34,10 @@ Emulator-tested ≠ real-project-tested.
 | Firestore rules                                                                           | **Published** (deny-all) through the Admin SDK Rules API. Verified against the live database: anonymous read, signed-in read and signed-in write from the client path all returned **403** |
 | `firebase deploy` CLI                                                                     | Not usable with the service account (403 on the service-usage API); the Rules API route above was used instead                                                                             |
 | Full attendance cycle on the real project (students, teacher review, approval, check-out) | **Not tested**                                                                                                                                                                             |
+
+## 3b. One-command launcher (v0.4.0), run for real on this Mac
+
+`Start Tech Pulse.command` found Node 24 itself, validated the Firebase configuration, put the public certificate at `~/Downloads/TechPulse-rootCA.pem`, detected the ESP32 and served `https://<LAN-IP>:8443` with a QR code. Launching it a second time **stopped the 4 older Tech Pulse processes** (2 launchers, the server, the proxy) and started cleanly; the page loaded over HTTPS with the mkcert CA. Unrelated programs are never stopped (test `tests/full.test.js`). Not tested: a real phone opening the QR code.
 
 ## 4. Fresh download acceptance
 

@@ -58,7 +58,11 @@ if (lastIp && lastIp !== ip)
   );
 
 // 3. HTTPS port must be free on that address.
-const httpsPort = Number(process.env.TECHPULSE_HTTPS_PORT || 8443);
+// An explicit TECHPULSE_HTTPS_PORT is respected (and reported if busy); otherwise the
+// first free port from 8443 is used, so another program on 8443 never blocks startup.
+let httpsPort = Number(process.env.TECHPULSE_HTTPS_PORT || 8443);
+if (!process.env.TECHPULSE_HTTPS_PORT)
+  for (let i = 0; i < 20 && !(await portFree(httpsPort, ip)); i++) httpsPort++;
 if (!(await portFree(httpsPort, ip)))
   die(
     `Port ${httpsPort} on ${ip} is already in use by another program (left untouched). Stop it or set TECHPULSE_HTTPS_PORT.`,
@@ -194,6 +198,10 @@ if (!ready && !stopping) {
   );
   stop(1);
 } else if (ready) {
+  try {
+    const QR = (await import("qrcode")).default;
+    console.log(await QR.toString(origin, { type: "terminal", small: true }));
+  } catch {}
   console.log(`
 ==============================================================
   Phone URL:  ${origin}

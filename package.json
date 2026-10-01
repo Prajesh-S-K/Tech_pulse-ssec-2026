@@ -1,6 +1,6 @@
 {
   "name": "tech-pulse-attendance",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -26,7 +26,9 @@
     "esp32:upload:port": "node scripts/esp32-upload.js",
     "test:firebase": "node scripts/test-firebase.js",
     "demo:connected": "node scripts/demo.js --connected",
-    "release": "node scripts/make-release.js"
+    "release": "node scripts/make-release.js",
+    "full": "node scripts/full.js",
+    "stop": "node scripts/stop.js"
   },
   "dependencies": {
     "express": "^5.1.0",

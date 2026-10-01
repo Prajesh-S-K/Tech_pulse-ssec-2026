@@ -38,6 +38,8 @@ export const INCLUDE_FILES = [
   "playwright.config.js",
   "playwright.firebase.config.js",
   "Tech_pulse-ssec-2026.code-workspace",
+  "Start Tech Pulse.command",
+  "Stop Tech Pulse.command",
 ];
 export const INCLUDE_DIRS = [
   "src",

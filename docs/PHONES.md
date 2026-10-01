@@ -4,6 +4,10 @@ Camera and location only work on **HTTPS** (or localhost, which on a phone means
 
 > Status: launcher logic is tested with stand-in mkcert/Caddy programs; a real iPhone and Android run is **not tested** until performed (see FINAL_CHECKLIST).
 
+## Easiest way
+
+Double-click **`Start Tech Pulse.command`** (or `npm run full`). It installs the prerequisites if needed, puts the certificate at `~/Downloads/TechPulse-rootCA.pem` (revealed in Finder), stops older instances of this project, picks free ports and prints the phone URL with a QR code. The sections below explain what it does.
+
 ## Prerequisites (once)
 
 ```sh

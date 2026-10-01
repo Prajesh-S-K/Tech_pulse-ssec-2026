@@ -2,6 +2,14 @@
 
 > Entries below 0.3.0 are historical; several describe behaviour that has since been removed or replaced (see docs/PROJECT.md).
 
+## 0.4.0 — 2026-10-01
+
+### Added
+
+- `npm run full` and double-click `Start Tech Pulse.command` / `Stop Tech Pulse.command`: one step that stops older instances of this folder (only), validates Firebase configuration, installs mkcert/Caddy if needed, copies the public phone certificate to Downloads and reveals it, picks free ports and prints the phone URL with a QR code.
+- Phone launcher picks the next free HTTPS port when 8443 is taken.
+- `npm run stop`.
+
 ## 0.3.0 — 2026-10-01
 
 ### Added
