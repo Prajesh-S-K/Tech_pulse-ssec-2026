@@ -2,6 +2,16 @@
 
 > Entries below 0.3.0 are historical; several describe behaviour that has since been removed or replaced (see docs/PROJECT.md).
 
+## 0.5.0 — 2026-10-01
+
+### Added (judge experience)
+
+- README rewritten as a judge guide: extract → double-click → browser opens → logins listed → five-minute walkthrough → troubleshooting table.
+- **`Start Tech Pulse.command`** (Mac) and **`Start Tech Pulse.bat`** (Windows): fast local start that opens the browser and a readable **`private/DEMO-LOGINS.txt`** (every account, role, generated password, what to try).
+- **`Start Tech Pulse with Phones.command`**: the former full launcher.
+- Phone setup by **two QR codes**: a LAN page that serves only the public CA (iPhone `.mobileconfig`, Android certificate) and the app itself.
+- Launchers find Node themselves (nvm, Homebrew, PATH) and explain how to install it if missing.
+
 ## 0.4.0 — 2026-10-01
 
 ### Added
@@ -15,7 +25,7 @@
 ### Added
 
 - `npm run demo` (local, hardware-free), `demo:connected`, `demo:phones`, `setup`, `doctor`, `firebase:init`, `deploy:web`, `release`.
-- Proof policy selector (baseline default / ESP32-required) and *Start replacement session without ESP32*.
+- Proof policy selector (baseline default / ESP32-required) and _Start replacement session without ESP32_.
 - Estimated room occupancy with student check-out; checks-and-anomalies panel; evaluation map.
 - Optional Firebase Email/Password sign-in with Firestore persistence (emulator-tested).
 - Safe ESP32 upload pipeline with chip verification; private HTTPS launcher for phones.
@@ -41,7 +51,7 @@
 - **Modular Presence Provider Interface**: Created standardized `PresenceProvider` interface returning `{ status: "PASS" | "FAIL" | "UNAVAILABLE", reason, payload }`, with `BrowserPresenceProvider`, `HardwarePresenceProvider` (automatic fallback to `REDUCED_EVIDENCE_FALLBACK`), and `SimulatedPresenceProvider`.
 - **Resource Management & Room Utilization**: Implemented real-time classroom capacity, verified headcount, utilization percentage, and dynamic **Resource Over-Capacity Alert** in teacher attendance dashboard.
 - **Slow-Network Transmission Grace Period**: Decoupled `evidence.capturedAt` from HTTP request arrival time; 15-second grace window prevents penalizing mobile students on high-latency networks.
-- **Student Privacy & Geofence Policy**: Added prominent student privacy guarantee banner (*"VERIFY PRESENCE — DO NOT TRACK STUDENTS"*). Added warning in UI against excessively loose geofences (>100m).
+- **Student Privacy & Geofence Policy**: Added prominent student privacy guarantee banner (_"VERIFY PRESENCE — DO NOT TRACK STUDENTS"_). Added warning in UI against excessively loose geofences (>100m).
 - **Stepped Verification Pipeline UX Tracker**: Visual 5-step progress indicators for students during check-in.
 - **Honest Biometrics Labeling**: Clarified in documentation and UI that the pure JS multi-metric matcher is an experimental pre-neural visual feature baseline, routing mismatches to teacher review rather than punitive disqualification.
 
@@ -94,7 +104,6 @@
 - **Role Preview Switcher**: Devs can seamlessly preview the Teacher or Student interface with a 1-click switcher without needing to sign out.
 - **Automated Tests**: 18/18 unit tests pass (`npm test`) and 2 Playwright browser tests pass covering mobile check-in, dev console, schedule editing, and venue relocation.
 
-
 ### Added & Expanded
 
 - **Account & Profile Management**: Added student and teacher registration (`POST /api/register`), multi-attribute login (by ID, email, or roll), and reference face profile photo registration (`POST /api/profile/photo`).
@@ -108,7 +117,6 @@
   - Student navigation tabs: `Check-In`, `My Timetable & Records`, `Face Profile Registration`.
   - Face comparison preview: Student check-in displays side-by-side comparison of registered reference face and live-captured photo.
 - **Automated Tests**: Added tests for registration, profile updates, classroom/schedule assignment, and course attendance. All 15 unit tests pass.
-
 
 ### Fixed & Improved
 

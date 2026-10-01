@@ -109,14 +109,30 @@ test("npm run full stops with a clear fix when Firebase is configured but unusab
 });
 
 test("double-click launchers are executable, valid shell, find Node themselves and never print secrets", () => {
-  for (const f of ["Start Tech Pulse.command", "Stop Tech Pulse.command"]) {
+  for (const f of [
+    "Start Tech Pulse.command",
+    "Start Tech Pulse with Phones.command",
+    "Stop Tech Pulse.command",
+    "scripts/find-node.sh",
+  ]) {
     accessSync(join(repo, f), constants.X_OK);
     assert.equal(spawnSync("bash", ["-n", join(repo, f)]).status, 0, f);
   }
-  const start = readFileSync(join(repo, "Start Tech Pulse.command"), "utf8");
-  assert.match(start, /nvm\/versions\/node/);
-  assert.match(start, /scripts\/full\.js/);
-  assert.doesNotMatch(start, /password|rootCA-key/i);
+  const finder = readFileSync(join(repo, "scripts/find-node.sh"), "utf8");
+  assert.match(finder, /nvm\/versions\/node/);
+  assert.match(finder, /nodejs\.org/);
+  const fast = readFileSync(join(repo, "Start Tech Pulse.command"), "utf8");
+  assert.match(fast, /scripts\/demo\.js/);
+  assert.doesNotMatch(fast, /full\.js/);
+  const phones = readFileSync(
+    join(repo, "Start Tech Pulse with Phones.command"),
+    "utf8",
+  );
+  assert.match(phones, /scripts\/full\.js/);
+  const bat = readFileSync(join(repo, "Start Tech Pulse.bat"), "utf8");
+  assert.match(bat, /scripts\\demo\.js/);
+  for (const t of [fast, phones, finder])
+    assert.doesNotMatch(t, /password|rootCA-key/i);
   const full = readFileSync(join(repo, "scripts/full.js"), "utf8");
   assert.match(full, /TechPulse-rootCA\.pem/);
   assert.doesNotMatch(full, /rootCA-key/);

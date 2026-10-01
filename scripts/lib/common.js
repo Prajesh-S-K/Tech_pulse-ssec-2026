@@ -67,7 +67,14 @@ export function lanAddresses() {
 }
 
 export function run(cmd, args, options = {}) {
-  return spawnSync(cmd, args, { cwd: root, encoding: "utf8", ...options });
+  // On Windows npm is npm.cmd and needs a shell.
+  const shell = process.platform === "win32" && cmd === "npm";
+  return spawnSync(cmd, args, {
+    cwd: root,
+    encoding: "utf8",
+    shell,
+    ...options,
+  });
 }
 
 export function which(cmd) {

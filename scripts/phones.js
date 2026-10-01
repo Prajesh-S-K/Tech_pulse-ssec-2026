@@ -19,6 +19,9 @@ import {
   buildCurrent,
   recordBuild,
 } from "./lib/common.js";
+import { startCertServer } from "./lib/certserver.js";
+import { openTarget } from "./lib/open.js";
+import { writeLogins } from "./lib/logins.js";
 
 const die = (m, code = 1) => {
   console.error(`[phones] ERROR: ${m}`);
@@ -198,17 +201,54 @@ if (!ready && !stopping) {
   );
   stop(1);
 } else if (ready) {
+  // Certificate page on the LAN so phones can install the public CA by scanning a QR code.
+  let certUrl = null;
+  let certServer = null;
+  try {
+    let certPort = 8765; // uncommon port: 8080 is used by many tools (and the Firestore emulator)
+    for (let i = 0; i < 30 && !(await portFree(certPort, ip)); i++) certPort++;
+    certServer = await startCertServer({
+      ip,
+      port: certPort,
+      caFile,
+      appUrl: origin,
+    });
+    certUrl = `http://${ip}:${certPort}/`;
+    children.push({ exitCode: null, kill: () => certServer.close() });
+  } catch {}
+  let qrs = "";
   try {
     const QR = (await import("qrcode")).default;
-    console.log(await QR.toString(origin, { type: "terminal", small: true }));
+    const q = (t) => QR.toString(t, { type: "terminal", small: true });
+    if (certUrl)
+      qrs += `  STEP 1 — scan to trust the demo certificate (once per phone):\n${await q(certUrl)}\n`;
+    qrs += `  STEP ${certUrl ? 2 : 1} — scan to open Tech Pulse:\n${await q(origin)}\n`;
   } catch {}
+  const loginsFile = p("private", "DEMO-LOGINS.txt");
+  if ((env.AUTH_MODE || "local") === "local") {
+    const fresh = !existsSync(loginsFile);
+    if (
+      writeLogins(
+        {
+          credentialsPath:
+            process.env.CREDENTIALS_PATH ||
+            p("private", "account-passwords.json"),
+          url: `http://127.0.0.1:${nodePort}`,
+          phoneUrl: origin,
+        },
+        loginsFile,
+      ) &&
+      fresh
+    )
+      openTarget(loginsFile);
+  }
+  console.log(qrs);
   console.log(`
 ==============================================================
   Phone URL:  ${origin}
-  Install ONLY rootCA.pem from ${caroot} on phones (see docs/PHONES.md).
-  Never copy rootCA-key.pem anywhere.
-  Phones must be on the same Wi-Fi as this computer. After the ESP32
+${certUrl ? `  Certificate page:  ${certUrl}\n` : ""}  Phones must be on the same Wi-Fi as this computer. After the ESP32
   step, rejoin this Wi-Fi: mobile data cannot reach this private server.
+  Computer certificate file: ~/Downloads/TechPulse-rootCA.pem (if made).
   Keep this window open. Stop with Ctrl+C.
 ==============================================================`);
 }

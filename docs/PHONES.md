@@ -6,7 +6,12 @@ Camera and location only work on **HTTPS** (or localhost, which on a phone means
 
 ## Easiest way
 
-Double-click **`Start Tech Pulse.command`** (or `npm run full`). It installs the prerequisites if needed, puts the certificate at `~/Downloads/TechPulse-rootCA.pem` (revealed in Finder), stops older instances of this project, picks free ports and prints the phone URL with a QR code. The sections below explain what it does.
+Double-click **`Start Tech Pulse with Phones.command`** (or `npm run full`). It installs the prerequisites if needed, stops older instances of this project, picks free ports and prints **two QR codes**:
+
+1. **Scan to trust the demo certificate** — opens a small page on your Wi-Fi with a one-tap _iPhone profile_ and an _Android certificate_; it serves only the **public** certificate.
+2. **Scan to open Tech Pulse.**
+
+The certificate is also copied to `~/Downloads/TechPulse-rootCA.pem` and shown in Finder if you prefer AirDrop. The sections below explain what it does.
 
 ## Prerequisites (once)
 

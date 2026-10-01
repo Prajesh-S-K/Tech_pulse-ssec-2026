@@ -39,6 +39,10 @@ Emulator-tested ≠ real-project-tested.
 
 `Start Tech Pulse.command` found Node 24 itself, validated the Firebase configuration, put the public certificate at `~/Downloads/TechPulse-rootCA.pem`, detected the ESP32 and served `https://<LAN-IP>:8443` with a QR code. Launching it a second time **stopped the 4 older Tech Pulse processes** (2 launchers, the server, the proxy) and started cleanly; the page loaded over HTTPS with the mkcert CA. Unrelated programs are never stopped (test `tests/full.test.js`). Not tested: a real phone opening the QR code.
 
+## 3c. Judge experience (v0.5.0)
+
+Extracted `tech-pulse-0.5.0.zip` into an empty folder and ran **`Start Tech Pulse.command`** in a bare environment (`env -i`, only `/usr/bin:/bin`; the launcher found Node 24 by itself, `TP_NO_OPEN=1` only to keep the test from opening windows). Result: dependencies installed, client built, server started, **`private/DEMO-LOGINS.txt` written (mode 600) listing all 9 accounts with their roles and the 5-minute walkthrough**, then the same acceptance walk as §4 passed (0 sessions at start, teacher session → student submit → teacher approval = 1 record, wrong password 401, student blocked from teacher API 403, restart keeps data, credentials unchanged, port released). The with-Phones launcher was run for real on this Mac: it stopped the older instance, printed both QR codes and served the certificate page (page 200, public CA byte-identical to mkcert's `rootCA.pem`, iPhone profile and Android file served, any attempt to fetch the private key returned 404). A real phone scanning them is **not tested**. Windows `.bat`: written, **not run** (no Windows machine).
+
 ## 4. Fresh download acceptance
 
 Extracted `release/tech-pulse-0.3.0.zip` into an empty directory (no `private/`, data, dependencies or build) and ran the default `npm run demo` with **no** `STORE_PATH`/`CREDENTIALS_PATH`/`PRESENCE_CONFIG` overrides.

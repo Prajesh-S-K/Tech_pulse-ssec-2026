@@ -17,6 +17,8 @@ import {
   runtimePath,
   readJson,
 } from "./lib/common.js";
+import { openTarget } from "./lib/open.js";
+import { writeLogins } from "./lib/logins.js";
 
 const connected = process.argv.includes("--connected");
 const say = (m) => console.log(`[demo] ${m}`);
@@ -134,21 +136,29 @@ if (!ready && !exited) {
   die("The server did not become reachable within 60 seconds.");
 }
 if (ready) {
-  const creds = credentialsFile();
+  const loginsFile = p("private", "DEMO-LOGINS.txt");
+  let note = "";
+  if (!connected) {
+    const fresh = !existsSync(loginsFile);
+    if (writeLogins({ credentialsPath: credentialsFile(), url }, loginsFile)) {
+      note = `  Login list:  ${loginsFile}`;
+      if (fresh) openTarget(loginsFile);
+    }
+  }
+  openTarget(url);
   console.log(`
 ==============================================================
-  Open:   ${url}
+  Open:   ${url}   (your browser should open by itself)
 ${
   connected
     ? `  Connected mode (Firebase). Sign in with a Firebase email account;
   the owner account was set up by npm run firebase:init.`
-    : `  Sign in with an account from the generated, private file:
-          ${creds}
-  (open it in a text editor; it is created on first start and is
-   never committed. Accounts: teacher, teacher-2, dev, student-1..6.)
+    : `${note}
+  Accounts and passwords for this copy are in that file (opened for you
+  the first time): teacher, teacher-2, dev, student-1..6.
   No attendance session exists yet: sign in as "teacher" and start one
   from Live Attendance. Your data persists between starts.`
 }
-  Stop with Ctrl+C.
+  Stop with Ctrl+C (or close this window).
 ==============================================================`);
 }
